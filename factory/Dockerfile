@@ -1,4 +1,5 @@
 FROM opensciencegrid/software-base:fresh
+ENV GLIDEINWMS_RELEASE=3.7.1
 
 # Using http://www.t2.ucsd.edu/twiki2/bin/view/UCSDTier2/FactoryRpmInstall as a basic procedure
 
@@ -7,7 +8,6 @@ RUN useradd gfactory
 
 
 # Install preliminary RPMs
-RUN yum -y install wget
 RUN yum -y install osg-ca-certs
 RUN yum -y install condor
 # yum can't find this for some reason - leave it out for now
@@ -36,7 +36,37 @@ RUN for ((i = 1;i <= 9;i++)); do \
 RUN touch 90_gwms_dns.config
 RUN touch 99_local_tweaks.config
 
+# Bunch of config stuff goes here
+#
+#
 
+
+# Condor tarballs for each destination OS (8.9)
+ADD https://research.cs.wisc.edu/htcondor/tarball/8.9/8.9.9/release/condor-8.9.9-x86_64_CentOS8-stripped.tar.gz /var/lib/gwms-factory/condor/condor-8.9.9-x86_64_CentOS8-stripped.tar.gz
+ADD https://research.cs.wisc.edu/htcondor/tarball/8.9/8.9.9/release/condor-8.9.9-x86_64_CentOS7-stripped.tar.gz /var/lib/gwms-factory/condor/condor-8.9.9-x86_64_CentOS7-stripped.tar.gz
+
+# Condor tarballs for each destination OS (8.8)
+ADD https://research.cs.wisc.edu/htcondor/tarball/8.8/8.8.12/release/condor-8.8.12-x86_64_CentOS6-stripped.tar.gz /var/lib/gwms-factory/condor/condor-8.8.12-x86_64_CentOS6-stripped.tar.gz
+ADD https://research.cs.wisc.edu/htcondor/tarball/8.8/8.8.12/release/condor-8.8.12-x86_64_CentOS7-stripped.tar.gz /var/lib/gwms-factory/condor/condor-8.8.12-x86_64_CentOS7-stripped.tar.gz
+
+
+# Create stripped tarballs with correct name
+WORKDIR /var/lib/gwms-factory/condor
+RUN for i in ./condor-*.tar.gz; do \
+	create_condor_tarball gfactory-${GLIDEINWMS_RELEASE}-`basename $i` $i ;\
+	done
+
+
+
+# Pull down OSG factory config
+ADD http://gfactory-2.opensciencegrid.org/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+# For glideinWMS.xml, delete all the condor_tarball lines that are _not_ specifying the current release ($GLIDEINWMS_RELEASE)
+RUN awk '!/condor_tarball/ || (/condor_tarballs/ || /${GLIDEINWMS_RELEASE}/) ' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+RUN chown -R gfactory:gfactory /etc/gwms-factory/glideinWMS.xml
+
+
+# Run upgrade for gwms-factory
+RUN gwms-factory upgrade
 
 
 #
