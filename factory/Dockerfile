@@ -57,11 +57,15 @@ RUN for i in ./condor-*.tar.gz; do \
 	done
 
 
-
 # Pull down OSG factory config
 ADD http://gfactory-2.opensciencegrid.org/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
 # For glideinWMS.xml, delete all the condor_tarball lines that are _not_ specifying the current release ($GLIDEINWMS_RELEASE)
 RUN awk '!/condor_tarball/ || (/condor_tarballs/ || /${GLIDEINWMS_RELEASE}/) ' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+
+# Delete all the file entries from the config since we're not bringing extras along
+RUN sed '/\<files\>/,/\<files\>/{//!d}' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+
+
 RUN chown -R gfactory:gfactory /etc/gwms-factory/glideinWMS.xml
 
 
