@@ -9,32 +9,32 @@ RUN useradd gfactory
 
 # Install preliminary RPMs
 RUN yum -y install osg-ca-certs
-RUN yum -y install condor
+RUN yum -y install condor.x86_64
 # yum can't find this for some reason - leave it out for now
 # RUN yum -y install condor-cream-gahp
 
 
 # Use osg-upcoming until gwms factory 3.7 is available from osg-release
-RUN yum -y --enablerepo=osg-upcoming install glideinwms-factory-condor \
-	glideinwms-factory
+#RUN yum -y --enablerepo=osg-upcoming install glideinwms-factory-condor \
+RUN yum -y --enablerepo=osg-upcoming install glideinwms-factory
 
-# Use OSG schedd and secondary schedd configs instead of what ships with rpm:
-WORKDIR /etc/condor/config.d
-# RUN rm 02_gwms_factory_schedds.config
-ADD https://raw.githubusercontent.com/jdost321/factools/master/etc/condor_config/02_gwms_factory_schedds.config  02_gwms_factory_schedds.config  
-ADD https://raw.githubusercontent.com/jdost321/factools/master/etc/condor_config/11_gwms_factory_secondary_schedds.config.8.6 11_gwms_factory_secondary_schedds.config
+# # Use OSG schedd and secondary schedd configs instead of what ships with rpm:
+# WORKDIR /etc/condor/config.d
+# # RUN rm 02_gwms_factory_schedds.config
+# ADD https://raw.githubusercontent.com/jdost321/factools/master/etc/condor_config/02_gwms_factory_schedds.config  02_gwms_factory_schedds.config  
+# ADD https://raw.githubusercontent.com/jdost321/factools/master/etc/condor_config/11_gwms_factory_secondary_schedds.config.8.6 11_gwms_factory_secondary_schedds.config
 
 # Create secondary schedd dirs
-RUN for ((i = 1;i <= 9;i++)); do \
-	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/execute;\
-	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/lock ;\
-	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/procd_pipe ;\
-	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/spool ;\
-	done
+# RUN for ((i = 1;i <= 9;i++)); do \
+# 	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/execute;\
+# 	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/lock ;\
+# 	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/procd_pipe ;\
+# 	install -o condor -g condor -d /var/lib/condor/schedd_glideins${i}/spool ;\
+# 	done
 
 # Create the FE DN file:
-RUN touch 90_gwms_dns.config
-RUN touch 99_local_tweaks.config
+# RUN touch 90_gwms_dns.config
+# RUN touch 99_local_tweaks.config
 
 # Bunch of config stuff goes here
 #
@@ -58,12 +58,12 @@ RUN for i in ./condor-*.tar.gz; do \
 
 
 # Pull down OSG factory config
-ADD http://gfactory-2.opensciencegrid.org/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
-# For glideinWMS.xml, delete all the condor_tarball lines that are _not_ specifying the current release ($GLIDEINWMS_RELEASE)
-RUN awk '!/condor_tarball/ || (/condor_tarballs/ || /${GLIDEINWMS_RELEASE}/) ' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+# ADD http://gfactory-2.opensciencegrid.org/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+# # For glideinWMS.xml, delete all the condor_tarball lines that are _not_ specifying the current release ($GLIDEINWMS_RELEASE)
+# RUN awk '!/condor_tarball/ || (/condor_tarballs/ || /${GLIDEINWMS_RELEASE}/) ' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
 
 # Delete all the file entries from the config since we're not bringing extras along
-RUN sed '/\<files\>/,/\<files\>/{//!d}' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
+# RUN sed '/\<files\>/,/\<files\>/{//!d}' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
 
 
 RUN chown -R gfactory:gfactory /etc/gwms-factory/glideinWMS.xml
