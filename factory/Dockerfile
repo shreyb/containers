@@ -72,6 +72,12 @@ RUN chown -R gfactory:gfactory /etc/gwms-factory/glideinWMS.xml
 # Run upgrade for gwms-factory
 RUN gwms-factory upgrade
 
+# Create /var/run/condor and allow condor user to write to it
+RUN mkdir -p /var/run/condor && chown condor /var/run/condor
+
+# Add dirs to container
+ADD supervisord.d/* /etc/supervisord.d/
+# CMD ["/usr/bin/supervisord"]
 
 #
 #
