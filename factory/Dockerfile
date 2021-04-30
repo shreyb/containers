@@ -66,6 +66,9 @@ RUN for i in ./condor-*.tar.gz; do \
 # RUN sed '/\<files\>/,/\<files\>/{//!d}' /etc/gwms-factory/glideinWMS.xml > /tmp/glideinWMS.xml && mv -f /tmp/glideinWMS.xml /etc/gwms-factory/glideinWMS.xml
 
 
+# Make this an install statement
+RUN mkdir -p /etc/gwms-factory/config.d && chown -R gfactory:gfactory /etc/gwms-factory/config.d
+
 RUN chown -R gfactory:gfactory /etc/gwms-factory/glideinWMS.xml
 
 
